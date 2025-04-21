@@ -1,0 +1,66 @@
+flowchart LR
+ subgraph subGraph0["Data Acquisition"]
+    direction LR
+        B{"Filter Microbiology Events"}
+        A["Load Data from GCS"]
+        C["Key Tables: <br> MICROBIOLOGYEVENTS, PATIENTS, <br> ADMISSIONS, LABEVENTS, <br> PRESCRIPTIONS, DIAGNOSES_ICD"]
+        D("Identify Top 10 <br> Pathogen/Antibiotic Pairs")
+  end
+ subgraph subGraph1["Data Preparation"]
+    direction LR
+        E{"Merge Microbio Data with <br> Patient &amp; Admission Info"}
+        F["Define Time Windows: <br> 24hrs post-culture Labs <br> 30 days pre culture Prior ABX"]
+  end
+ subgraph subGraph2["Feature Engineering"]
+    direction LR
+        G["Extract Features"]
+        H("Demographics: <br> Age, Gender")
+        I("Admission Info: <br> Type, Ethnicity")
+        J("Prior Antibiotic Use: <br> Binary Flag")
+        K("Comorbidities: <br> Diabetes Flag")
+        L("Early Labs Avg 24h: <br> Creatinine, WBC, Bicarbonate")
+        M("Specimen Type")
+        N["Collect Features <br> for a Pair"]
+  end
+ subgraph Preprocessing["Preprocessing"]
+    direction LR
+        O{"Handle Duplicates <br> &amp; Missing Targets"}
+        P{"Outlier Capping <br> IQR"}
+        Q{"Encode Target Variable <br> R,S,I -&gt; 0,1,2"}
+        R{"Stratified Train/Test Split <br> 75%/25%"}
+        S["Preprocessing Pipeline <br> Impute, Scale, OneHotEncode"]
+  end
+ subgraph Modeling["Modeling"]
+    direction LR
+        T@{ label: "Train RandomForestClassifier <br> class_weight='balanced'" }
+  end
+ subgraph Evaluation["Evaluation"]
+    direction LR
+        U{"Stratified 5-Fold <br> Cross-Validation"}
+        V["Evaluate Final Model"]
+        W("Mean Weighted F1")
+        X("Weighted F1, <br> Classification Report, <br> Confusion Matrix")
+  end
+    A --> B
+    A -- CSVs --> C
+    B -- R, S, I --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H & I & J & K & L & M & N
+    O --> P
+    P --> Q
+    Q --> R
+    R --> S
+    S --> T
+    T --> U & V
+    U --> W
+    V --> X
+
+    T@{ shape: diamond}
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style C fill:#eee,stroke:#333,stroke-width:1px
+    style G fill:#ccf,stroke:#333,stroke-width:2px
+    style S fill:#ccf,stroke:#333,stroke-width:2px
+    style T fill:#fcf,stroke:#333,stroke-width:2px
+    style V fill:#fcf,stroke:#333,stroke-width:2px
